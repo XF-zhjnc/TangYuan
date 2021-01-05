@@ -2,13 +2,10 @@ package io.github.xf_zhjnc.tangyuantv
 
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.view.View
-import android.view.Window
-import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
-import kotlinx.android.synthetic.main.activity_video_player.*
+import io.github.xf_zhjnc.tangyuantv.databinding.ActivityVideoPlayerBinding
 import tv.danmaku.ijk.media.player.IMediaPlayer
 
 /**
@@ -19,6 +16,8 @@ import tv.danmaku.ijk.media.player.IMediaPlayer
 class VideoPlayerActivity : AppCompatActivity(), TYVideoListener {
 
     private var videoPath: String? = null
+
+    private lateinit var mBinding: ActivityVideoPlayerBinding
 
     companion object {
         const val VIDEO_PATH = "video_path"
@@ -42,13 +41,14 @@ class VideoPlayerActivity : AppCompatActivity(), TYVideoListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_video_player)
+        mBinding = ActivityVideoPlayerBinding.inflate(layoutInflater)
+        setContentView(mBinding.root)
 
         videoPath = intent.getStringExtra(VIDEO_PATH)
 
-        videoPlayer.setTYVideoListener(this)
-        videoPath?.let { videoPlayer.setPath(it) }
-        videoPlayer.load()
+        mBinding.videoPlayer.setTYVideoListener(this)
+        videoPath?.let { mBinding.videoPlayer.setPath(it) }
+        mBinding.videoPlayer.load()
     }
 
     override fun onBufferingUpdate(p0: IMediaPlayer?, p1: Int) {
@@ -60,7 +60,7 @@ class VideoPlayerActivity : AppCompatActivity(), TYVideoListener {
     }
 
     override fun onPrepared(p0: IMediaPlayer?) {
-        videoPlayer.start()
+        mBinding.videoPlayer.start()
     }
 
     override fun onInfo(p0: IMediaPlayer?, p1: Int, p2: Int): Boolean {

@@ -2,18 +2,22 @@ package io.github.xf_zhjnc.tangyuantv
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import kotlinx.android.synthetic.main.activity_main.*
+import io.github.xf_zhjnc.tangyuantv.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var mBinding: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        mBinding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(mBinding.root)
 
-        btnCCTV.setOnClickListener {
+        mBinding.btnCCTV.setOnClickListener {
             VideoPlayerActivity.start(this, "http://ivi.bupt.edu.cn/hls/cctv1hd.m3u8")
         }
 
-        btnGuangDong.setOnClickListener {
+        mBinding.btnGuangDong.setOnClickListener {
             VideoPlayerActivity.start(this, "http://ivi.bupt.edu.cn/hls/gdhd.m3u8")
         }
     }
