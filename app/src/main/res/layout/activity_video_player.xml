@@ -7,13 +7,63 @@
     android:layout_height="match_parent"
     tools:context=".VideoPlayerActivity">
 
-    <io.github.xf_zhjnc.tangyuantv.TYVideoPlayer
-        android:id="@+id/videoPlayer"
+    <io.github.xf_zhjnc.tangyuantv.TYVideoPlayView
+        android:id="@+id/videoPlayView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clTopViewLayout"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="#80000000"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/ivBack"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@drawable/ic_back"
+            android:scaleType="centerInside"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginStart="13dp"/>
+
+        <TextView
+            android:id="@+id/tvTVTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CCTV1"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            app:layout_constraintStart_toEndOf="@id/ivBack"
+            app:layout_constraintTop_toTopOf="@id/ivBack"
+            app:layout_constraintBottom_toBottomOf="@id/ivBack"
+            android:layout_marginStart="5dp"/>
+
+        <ImageView
+            android:id="@+id/ivTVChannel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_channel"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/ivBack"
+            app:layout_constraintBottom_toBottomOf="@id/ivBack"
+            android:layout_marginEnd="15dp"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <include
+        android:id="@+id/playerController"
+        layout="@layout/layout_player_controller"
+        android:visibility="gone"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

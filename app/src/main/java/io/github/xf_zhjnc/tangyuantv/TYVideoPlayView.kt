@@ -18,7 +18,7 @@ import tv.danmaku.ijk.media.player.IjkMediaPlayer
  * DATE: 2021-01-05
  * DESC: 自定义播放控件
  */
-class TYVideoPlayer : FrameLayout {
+class TYVideoPlayView : FrameLayout {
 
     private var mContext: Context? = null
     private var mSurfaceView: SurfaceView? = null
