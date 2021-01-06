@@ -25,7 +25,7 @@ class VideoPlayerActivity : AppCompatActivity(), TYVideoListener, View.OnClickLi
     private lateinit var mBinding: ActivityVideoPlayerBinding
     private var currentTime: Long = System.currentTimeMillis()
     private var menuVisible: Boolean = true
-    private var timer: Timer? = null
+    private lateinit var timer: Timer
 
     companion object {
         const val VIDEO_PATH = "video_path"
@@ -57,40 +57,20 @@ class VideoPlayerActivity : AppCompatActivity(), TYVideoListener, View.OnClickLi
         initListener()
     }
 
+    override fun onStart() {
+        super.onStart()
+        showTopView()
+    }
+
     private fun initView() {
         mBinding.playerController.ivPlayOrPause.setImageResource(R.drawable.ic_player_pause)
-
         timer = Timer()
-        val timerTask = object : TimerTask() {
-            override fun run() {
-                val t = System.currentTimeMillis()
-                if (t - currentTime > 2000 && menuVisible) {
-                    currentTime = t
-                    runOnUiThread {
-                        Toast.makeText(this@VideoPlayerActivity, "隐藏头部", Toast.LENGTH_SHORT).show()
-//                        val animation: Animation = AnimationUtils.loadAnimation(applicationContext,
-//                                                                                R.anim.anim_move_top)
-//                        mBinding.clTopViewLayout.startAnimation(animation)
-                        mBinding.clTopViewLayout.visibility = View.GONE
-                    }
-                    menuVisible = false
-                }
-            }
-        }
-
-        timer!!.schedule(timerTask, 500)
-
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
         when (ev?.action) {
             MotionEvent.ACTION_DOWN -> {
-                if (!menuVisible) {
-                    Toast.makeText(this@VideoPlayerActivity, "显示头部", Toast.LENGTH_SHORT).show()
-                    menuVisible = true
-                    mBinding.clTopViewLayout.visibility = View.VISIBLE
-                    currentTime = System.currentTimeMillis()
-                }
+                showTopView()
             }
         }
         return super.dispatchTouchEvent(ev)
@@ -107,6 +87,26 @@ class VideoPlayerActivity : AppCompatActivity(), TYVideoListener, View.OnClickLi
         mBinding.playerController.ivPlayOrPause.setOnClickListener(this)
         mBinding.ivBack.setOnClickListener(this)
         mBinding.ivTVChannel.setOnClickListener(this)
+    }
+
+    private fun showTopView() {
+        menuVisible = true
+        mBinding.clTopViewLayout.visibility = View.VISIBLE
+        currentTime = System.currentTimeMillis()
+
+        val timerTask = object : TimerTask() {
+            override fun run() {
+                runOnUiThread {
+                    Toast.makeText(this@VideoPlayerActivity, "隐藏头部", Toast.LENGTH_SHORT).show()
+//                        val animation: Animation = AnimationUtils.loadAnimation(applicationContext,
+//                                                                                R.anim.anim_move_top)
+//                        mBinding.clTopViewLayout.startAnimation(animation)
+                    mBinding.clTopViewLayout.visibility = View.GONE
+                }
+                menuVisible = false
+            }
+        }
+        timer.schedule(timerTask, 2000)
     }
 
     override fun onBufferingUpdate(p0: IMediaPlayer?, p1: Int) {
@@ -159,6 +159,6 @@ class VideoPlayerActivity : AppCompatActivity(), TYVideoListener, View.OnClickLi
 
     override fun onDestroy() {
         super.onDestroy()
-        timer?.cancel()
+        timer.cancel()
     }
 }
