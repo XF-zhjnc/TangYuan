@@ -5,13 +5,16 @@ import android.graphics.Color
 import android.media.AudioManager
 import android.net.Uri
 import android.util.AttributeSet
+import android.util.Log
 import android.view.Gravity
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import android.view.View
 import android.widget.FrameLayout
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import io.github.xf_zhjnc.tangyuantv.utils.ScreenUtils
 import tv.danmaku.ijk.media.player.IMediaPlayer
 import tv.danmaku.ijk.media.player.IjkMediaPlayer
 
@@ -40,6 +43,18 @@ class TYVideoPlayView : FrameLayout {
     private var mHeader: Map<String, String>? = null
     private var mAudioManager: AudioManager? = null
     private var mAudioFocusHelper: AudioFocusHelper? = null
+
+    /**
+     * Aspect Ratio
+     */
+    val AR_ASPECT_FIT_PARENT: Int = 0 // without clip
+    val AR_ASPECT_FILL_PARENT = 1 // may clip
+    val AR_ASPECT_WRAP_CONTENT = 2
+    val AR_MATCH_PARENT = 3
+    val AR_16_9_FIT_PARENT = 4
+    val AR_4_3_FIT_PARENT = 5
+
+    private var mCurrentAspectRatio = AR_4_3_FIT_PARENT
 
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
@@ -227,8 +242,49 @@ class TYVideoPlayView : FrameLayout {
         val videoWidth = iMediaPlayer.videoWidth
         val videoHeight = iMediaPlayer.videoHeight
         if (videoWidth != 0 && videoHeight != 0) {
-            mSurfaceView?.holder?.setFixedSize(videoWidth, videoHeight)
+            resizeSurfaceView(videoWidth, videoHeight)
         }
+    }
+
+    private fun resizeSurfaceView(videoWidth: Int, videoHeight: Int) {
+        var displayWidth = measuredWidth
+        var displayHeight = measuredHeight
+
+        // 屏幕宽高比
+        val specAspectRatio: Float = measuredWidth * 1.0f / measuredHeight
+        // 显示宽高比
+        val displayAspectRatio: Float = when (mCurrentAspectRatio) {
+            AR_16_9_FIT_PARENT -> {
+                16.0f / 9.0f
+            }
+            AR_4_3_FIT_PARENT -> {
+                4.0f / 3.0f
+            }
+            else -> {
+                videoWidth * 1.0f / videoHeight
+            }
+        }
+        val shouldBeWider = displayAspectRatio > specAspectRatio
+
+        when (mCurrentAspectRatio) {
+            AR_16_9_FIT_PARENT, AR_4_3_FIT_PARENT -> {
+                if (shouldBeWider) {
+                    displayWidth = measuredWidth
+                    displayHeight = (displayWidth / displayAspectRatio).toInt()
+                } else {
+                    displayHeight = measuredHeight
+                    displayWidth = (displayHeight * displayAspectRatio).toInt()
+                }
+            }
+        }
+        Log.d("youzi", "$displayWidth : $displayHeight")
+        mSurfaceView?.let {
+            val layoutParams = it.layoutParams
+            layoutParams.width = displayWidth
+            layoutParams.height = displayHeight
+            it.layoutParams = layoutParams
+        }
+        mSurfaceView?.holder?.setFixedSize(displayWidth, displayHeight)
     }
 
 
@@ -268,7 +324,7 @@ class TYVideoPlayView : FrameLayout {
                 }
 
                 //需要降低音量
-                AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK                      -> {
+                AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
                     if (isPlaying()) {
                         mIMediaPlayer?.setVolume(0.1f, 0.1f);
                     }
