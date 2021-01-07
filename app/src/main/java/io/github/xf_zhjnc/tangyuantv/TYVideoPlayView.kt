@@ -9,6 +9,9 @@ import android.view.Gravity
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.widget.FrameLayout
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import tv.danmaku.ijk.media.player.IMediaPlayer
 import tv.danmaku.ijk.media.player.IjkMediaPlayer
 
@@ -50,6 +53,10 @@ class TYVideoPlayView : FrameLayout {
         createSurfaceView()
         mAudioManager = context.applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         mAudioFocusHelper = AudioFocusHelper()
+
+        if (context is LifecycleOwner) {
+            bindLifecycle(context)
+        }
     }
 
     /**
@@ -118,6 +125,28 @@ class TYVideoPlayView : FrameLayout {
      */
     fun setTYVideoListener(listener: TYVideoListener) {
         mListener = listener
+    }
+
+    private val observer = LifecycleEventObserver { source, event ->
+        when (event) {
+            Lifecycle.Event.ON_PAUSE -> {
+                pause()
+            }
+            Lifecycle.Event.ON_STOP -> {
+                stop()
+            }
+            Lifecycle.Event.ON_DESTROY -> {
+                unBindLifecycle(source)
+            }
+        }
+    }
+
+    private fun bindLifecycle(owner: LifecycleOwner) {
+        owner.lifecycle.addObserver(observer)
+    }
+
+    private fun unBindLifecycle(owner: LifecycleOwner) {
+        owner.lifecycle.removeObserver(observer)
     }
 
     //设置播放地址
