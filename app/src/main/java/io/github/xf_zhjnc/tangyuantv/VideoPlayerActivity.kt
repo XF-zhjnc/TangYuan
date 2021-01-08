@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
+import android.view.WindowManager
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.Toast
@@ -62,6 +63,16 @@ class VideoPlayerActivity : AppCompatActivity(), TYVideoListener, View.OnClickLi
         showTopView()
     }
 
+    override fun onResume() {
+        super.onResume()
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+
     private fun initView() {
         mBinding.playerController.ivPlayOrPause.setImageResource(R.drawable.ic_player_pause)
         timer = Timer()
@@ -97,7 +108,6 @@ class VideoPlayerActivity : AppCompatActivity(), TYVideoListener, View.OnClickLi
         val timerTask = object : TimerTask() {
             override fun run() {
                 runOnUiThread {
-                    Toast.makeText(this@VideoPlayerActivity, "隐藏头部", Toast.LENGTH_SHORT).show()
 //                        val animation: Animation = AnimationUtils.loadAnimation(applicationContext,
 //                                                                                R.anim.anim_move_top)
 //                        mBinding.clTopViewLayout.startAnimation(animation)

@@ -54,7 +54,7 @@ class TYVideoPlayView : FrameLayout {
     val AR_16_9_FIT_PARENT = 4
     val AR_4_3_FIT_PARENT = 5
 
-    private var mCurrentAspectRatio = AR_4_3_FIT_PARENT
+    private var mCurrentAspectRatio = AR_16_9_FIT_PARENT
 
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
