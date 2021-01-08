@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import io.github.xf_zhjnc.tangyuantv.databinding.ActivityVideoPlayerBinding
 import io.github.xf_zhjnc.tangyuantv.event.TYGestureListener
+import io.github.xf_zhjnc.tangyuantv.utils.BrightnessHelper
 import tv.danmaku.ijk.media.player.IMediaPlayer
 import java.util.*
 
@@ -35,6 +36,11 @@ class VideoPlayerActivity : AppCompatActivity(), TYVideoListener, View.OnClickLi
     private lateinit var mAudioManager: AudioManager
     private var maxVolume = 0
     private var oldVolume = 0
+
+    //调节亮度相关
+    private lateinit var mBrightnessHelper: BrightnessHelper
+    private var brightness = 1f
+    private lateinit var mLayoutParams: WindowManager.LayoutParams
 
     companion object {
         const val VIDEO_PATH = "video_path"
@@ -73,6 +79,10 @@ class VideoPlayerActivity : AppCompatActivity(), TYVideoListener, View.OnClickLi
         mAudioManager = getSystemService(Service.AUDIO_SERVICE) as AudioManager
         maxVolume = mAudioManager.getStreamMaxVolume(STREAM_MUSIC)
 
+        mBrightnessHelper = BrightnessHelper(this)
+        //设置当前APP亮度的方法配置
+        mLayoutParams = window.attributes
+        brightness = mLayoutParams.screenBrightness
     }
 
     private fun initVideoPlayer() {
@@ -182,6 +192,40 @@ class VideoPlayerActivity : AppCompatActivity(), TYVideoListener, View.OnClickLi
     override fun onBrightnessGesture(e1: MotionEvent?, e2: MotionEvent?, distanceX: Float,
                                      distanceY: Float) {
 
+        e1 ?: return
+        e2 ?: return
+
+        var newBrightness: Float = (e1.y - e2.y) / mBinding.clBaseLayout.height
+        newBrightness += brightness
+        if (newBrightness < 0f) {
+            newBrightness = 0f
+        } else if (newBrightness > 1f) {
+            newBrightness = 1f
+        }
+
+        mLayoutParams.screenBrightness = newBrightness
+        window.attributes = mLayoutParams
+        mBinding.gestureLayout.setProgress((newBrightness * 100).toInt())
+        mBinding.gestureLayout.setImageResource(R.drawable.ic_brightness)
+        mBinding.gestureLayout.show()
+
+    }
+
+    /**
+     * 直接设置系统亮度的方法
+     */
+    private fun setBrightness(brightness: Int) {
+        //要是有自动调节亮度，把它关掉
+        mBrightnessHelper.offAutoBrightness()
+        val oldBrightness = mBrightnessHelper.getBrightness()
+        val newBrightness = oldBrightness + brightness
+        //设置亮度
+        mBrightnessHelper.setSystemBrightness(newBrightness)
+        //设置显示
+        mBinding.gestureLayout.setProgress((java.lang.Float.valueOf(
+                newBrightness.toFloat()) / mBrightnessHelper.getMaxBrightness() * 100).toInt())
+        mBinding.gestureLayout.setImageResource(R.drawable.ic_brightness)
+        mBinding.gestureLayout.show()
     }
 
     /**
@@ -190,15 +234,14 @@ class VideoPlayerActivity : AppCompatActivity(), TYVideoListener, View.OnClickLi
     override fun onVolumeGesture(e1: MotionEvent?, e2: MotionEvent?, distanceX: Float,
                                  distanceY: Float) {
 
-        e1?:return
-        e2?:return
+        e1 ?: return
+        e2 ?: return
 
         val value = mBinding.clBaseLayout.height / maxVolume
         val newVolume = ((e1.y - e2.y) / value + oldVolume).toInt()
         mAudioManager.setStreamVolume(STREAM_MUSIC, newVolume, AudioManager.FLAG_PLAY_SOUND)
 
-        val volumeProgress =
-                (newVolume / maxVolume.toFloat() * 100).toInt()
+        val volumeProgress = (newVolume / maxVolume.toFloat() * 100).toInt()
 
         when {
             newVolume > oldVolume          -> {
@@ -229,6 +272,10 @@ class VideoPlayerActivity : AppCompatActivity(), TYVideoListener, View.OnClickLi
         showTopView()
 
         oldVolume = mAudioManager.getStreamVolume(STREAM_MUSIC)
-
+        brightness = mLayoutParams.screenBrightness
+        if (brightness == -1f) {
+            //一开始是默认亮度的时候，获取系统亮度，计算比例值
+            brightness = mBrightnessHelper.getBrightness() / 255f
+        }
     }
 }
