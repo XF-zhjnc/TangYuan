@@ -1,16 +1,18 @@
 package io.github.xf_zhjnc.tangyuantv
 
+import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.media.AudioManager
+import android.media.AudioManager.STREAM_MUSIC
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import io.github.xf_zhjnc.tangyuantv.databinding.ActivityVideoPlayerBinding
+import io.github.xf_zhjnc.tangyuantv.event.TYGestureListener
 import tv.danmaku.ijk.media.player.IMediaPlayer
 import java.util.*
 
@@ -20,13 +22,19 @@ import java.util.*
  * DATE: 2021-01-05
  * DESC: 视频播放页
  */
-class VideoPlayerActivity : AppCompatActivity(), TYVideoListener, View.OnClickListener {
+class VideoPlayerActivity : AppCompatActivity(), TYVideoListener, View.OnClickListener,
+                            TYGestureListener {
 
     private var videoPath: String? = null
     private lateinit var mBinding: ActivityVideoPlayerBinding
     private var currentTime: Long = System.currentTimeMillis()
     private var menuVisible: Boolean = true
     private lateinit var timer: Timer
+
+    //调节音量相关
+    private lateinit var mAudioManager: AudioManager
+    private var maxVolume = 0
+    private var oldVolume = 0
 
     companion object {
         const val VIDEO_PATH = "video_path"
@@ -36,6 +44,16 @@ class VideoPlayerActivity : AppCompatActivity(), TYVideoListener, View.OnClickLi
             intent.putExtra(VIDEO_PATH, url)
             context.startActivity(intent)
         }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        mBinding = ActivityVideoPlayerBinding.inflate(layoutInflater)
+        setContentView(mBinding.root)
+
+        initView()
+        initVideoPlayer()
+        initListener()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -48,14 +66,27 @@ class VideoPlayerActivity : AppCompatActivity(), TYVideoListener, View.OnClickLi
                 (View.SYSTEM_UI_FLAG_IMMERSIVE or View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        mBinding = ActivityVideoPlayerBinding.inflate(layoutInflater)
-        setContentView(mBinding.root)
+    private fun initView() {
+        mBinding.playerController.ivPlayOrPause.setImageResource(R.drawable.ic_player_pause)
+        timer = Timer()
 
-        initView()
-        initVideoPlayer()
-        initListener()
+        mAudioManager = getSystemService(Service.AUDIO_SERVICE) as AudioManager
+        maxVolume = mAudioManager.getStreamMaxVolume(STREAM_MUSIC)
+
+    }
+
+    private fun initVideoPlayer() {
+        videoPath = intent.getStringExtra(VIDEO_PATH)
+        mBinding.videoPlayView.setTYVideoListener(this)
+        videoPath?.let { mBinding.videoPlayView.setPath(it) }
+        mBinding.videoPlayView.load()
+    }
+
+    private fun initListener() {
+        mBinding.playerController.ivPlayOrPause.setOnClickListener(this)
+        mBinding.ivBack.setOnClickListener(this)
+        mBinding.ivTVChannel.setOnClickListener(this)
+        mBinding.clBaseLayout.setTYGestureListener(this)
     }
 
     override fun onStart() {
@@ -71,33 +102,6 @@ class VideoPlayerActivity : AppCompatActivity(), TYVideoListener, View.OnClickLi
     override fun onPause() {
         super.onPause()
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-    }
-
-    private fun initView() {
-        mBinding.playerController.ivPlayOrPause.setImageResource(R.drawable.ic_player_pause)
-        timer = Timer()
-    }
-
-    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
-        when (ev?.action) {
-            MotionEvent.ACTION_DOWN -> {
-                showTopView()
-            }
-        }
-        return super.dispatchTouchEvent(ev)
-    }
-
-    private fun initVideoPlayer() {
-        videoPath = intent.getStringExtra(VIDEO_PATH)
-        mBinding.videoPlayView.setTYVideoListener(this)
-        videoPath?.let { mBinding.videoPlayView.setPath(it) }
-        mBinding.videoPlayView.load()
-    }
-
-    private fun initListener() {
-        mBinding.playerController.ivPlayOrPause.setOnClickListener(this)
-        mBinding.ivBack.setOnClickListener(this)
-        mBinding.ivTVChannel.setOnClickListener(this)
     }
 
     private fun showTopView() {
@@ -170,5 +174,61 @@ class VideoPlayerActivity : AppCompatActivity(), TYVideoListener, View.OnClickLi
     override fun onDestroy() {
         super.onDestroy()
         timer.cancel()
+    }
+
+    /**
+     * 手势调节亮度
+     */
+    override fun onBrightnessGesture(e1: MotionEvent?, e2: MotionEvent?, distanceX: Float,
+                                     distanceY: Float) {
+
+    }
+
+    /**
+     * 手势调节音量
+     */
+    override fun onVolumeGesture(e1: MotionEvent?, e2: MotionEvent?, distanceX: Float,
+                                 distanceY: Float) {
+
+        e1?:return
+        e2?:return
+
+        val value = mBinding.clBaseLayout.height / maxVolume
+        val newVolume = ((e1.y - e2.y) / value + oldVolume).toInt()
+        mAudioManager.setStreamVolume(STREAM_MUSIC, newVolume, AudioManager.FLAG_PLAY_SOUND)
+
+        val volumeProgress =
+                (newVolume / maxVolume.toFloat() * 100).toInt()
+
+        when {
+            newVolume > oldVolume          -> {
+                mBinding.gestureLayout.setImageResource(R.drawable.ic_volume_add)
+            }
+            newVolume in 1 until oldVolume -> {
+                mBinding.gestureLayout.setImageResource(R.drawable.ic_volume_reduce)
+            }
+            else                           -> {
+                mBinding.gestureLayout.setImageResource(R.drawable.ic_volume_mute)
+            }
+        }
+
+        mBinding.gestureLayout.setProgress(volumeProgress)
+        mBinding.gestureLayout.show()
+
+    }
+
+    override fun onSingleTapGesture(e: MotionEvent?) {
+
+    }
+
+    override fun onDoubleTapGesture(e: MotionEvent?) {
+
+    }
+
+    override fun onDown(e: MotionEvent?) {
+        showTopView()
+
+        oldVolume = mAudioManager.getStreamVolume(STREAM_MUSIC)
+
     }
 }
