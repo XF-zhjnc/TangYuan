@@ -247,7 +247,7 @@ class VideoPlayerActivity : AppCompatActivity(), TYVideoListener, View.OnClickLi
             newVolume > oldVolume          -> {
                 mBinding.gestureLayout.setImageResource(R.drawable.ic_volume_add)
             }
-            newVolume in 1 until oldVolume -> {
+            newVolume in 1 .. oldVolume -> {
                 mBinding.gestureLayout.setImageResource(R.drawable.ic_volume_reduce)
             }
             else                           -> {
