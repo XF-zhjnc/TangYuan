@@ -5,16 +5,13 @@ import android.graphics.Color
 import android.media.AudioManager
 import android.net.Uri
 import android.util.AttributeSet
-import android.util.Log
 import android.view.Gravity
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import android.view.View
 import android.widget.FrameLayout
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
-import io.github.xf_zhjnc.tangyuantv.utils.ScreenUtils
 import tv.danmaku.ijk.media.player.IMediaPlayer
 import tv.danmaku.ijk.media.player.IjkMediaPlayer
 
@@ -26,8 +23,8 @@ import tv.danmaku.ijk.media.player.IjkMediaPlayer
  */
 class TYVideoPlayView : FrameLayout {
 
-    private var mContext: Context? = null
-    private var mSurfaceView: SurfaceView? = null
+    private lateinit var mContext: Context
+    private lateinit var mSurfaceView: SurfaceView
     private var mIMediaPlayer: IMediaPlayer? = null
     private var mEnableMediaCodec = false
     private var mListener: TYVideoListener? = null
@@ -44,17 +41,6 @@ class TYVideoPlayView : FrameLayout {
     private var mAudioManager: AudioManager? = null
     private var mAudioFocusHelper: AudioFocusHelper? = null
 
-    /**
-     * Aspect Ratio
-     */
-    val AR_ASPECT_FIT_PARENT: Int = 0 // without clip
-    val AR_ASPECT_FILL_PARENT = 1 // may clip
-    val AR_ASPECT_WRAP_CONTENT = 2
-    val AR_MATCH_PARENT = 3
-    val AR_16_9_FIT_PARENT = 4
-    val AR_4_3_FIT_PARENT = 5
-
-    private var mCurrentAspectRatio = AR_16_9_FIT_PARENT
 
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
@@ -79,7 +65,7 @@ class TYVideoPlayView : FrameLayout {
      */
     private fun createSurfaceView() {
         mSurfaceView = SurfaceView(mContext)
-        mSurfaceView!!.holder.addCallback(object : SurfaceHolder.Callback {
+        mSurfaceView.holder.addCallback(object : SurfaceHolder.Callback {
             override fun surfaceCreated(surfaceHolder: SurfaceHolder) {
 
             }
@@ -98,21 +84,21 @@ class TYVideoPlayView : FrameLayout {
     }
 
     private fun createPlayer(): IMediaPlayer {
-        var ijkMediaPlayer = IjkMediaPlayer()
-        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "opensles", 1)
+        val ijkMediaPlayer = IjkMediaPlayer().apply {
+            setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "opensles", 1)
 
-        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "overlay-format", IjkMediaPlayer.SDL_FCC_RV32.toLong())
-        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "framedrop", 1)
-        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "start-on-prepared", 0)
+            setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "overlay-format", IjkMediaPlayer.SDL_FCC_RV32.toLong())
+            setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "framedrop", 1)
+            setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "start-on-prepared", 0)
 
-        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "http-detect-range-support", 1)
+            setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "http-detect-range-support", 1)
 
-        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48)
-        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "min-frames", 100)
-        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "enable-accurate-seek", 1)
+            setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48)
+            setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "min-frames", 100)
+            setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "enable-accurate-seek", 1)
 
-        ijkMediaPlayer.setVolume(1.0f, 1.0f)
-
+            setVolume(1.0f, 1.0f)
+        }
         setEnableMediaCodec(ijkMediaPlayer, mEnableMediaCodec)
         return ijkMediaPlayer;
     }
@@ -176,13 +162,16 @@ class TYVideoPlayView : FrameLayout {
 
     //开始加载视频
     fun load() {
-        mIMediaPlayer?.stop()
-        mIMediaPlayer?.release()
-        mIMediaPlayer = createPlayer()
-        setIjkPlayerListener(mIMediaPlayer!!)
-        mIMediaPlayer?.setDisplay(mSurfaceView!!.holder)
-        mIMediaPlayer?.setDataSource(mContext, Uri.parse(mPath))
-        mIMediaPlayer?.prepareAsync()
+        mIMediaPlayer?.run {
+            stop()
+            release()
+        }
+        mIMediaPlayer = createPlayer().apply {
+            setIjkPlayerListener(this)
+            setDisplay(mSurfaceView.holder)
+            setDataSource(mContext, Uri.parse(mPath))
+            prepareAsync()
+        }
     }
 
     fun start() {
@@ -233,9 +222,7 @@ class TYVideoPlayView : FrameLayout {
      * 初始化listener
      */
     private val mPreparedListener = IMediaPlayer.OnPreparedListener { iMediaPlayer ->
-        if (mListener != null) {
-            mListener!!.onPrepared(iMediaPlayer)
-        }
+        mListener?.onPrepared(iMediaPlayer)
     }
 
     private val mVideoSizeChangedListener = IMediaPlayer.OnVideoSizeChangedListener { iMediaPlayer, i, i1, i2, i3 ->
@@ -247,44 +234,31 @@ class TYVideoPlayView : FrameLayout {
     }
 
     private fun resizeSurfaceView(videoWidth: Int, videoHeight: Int) {
-        var displayWidth = measuredWidth
-        var displayHeight = measuredHeight
+        val displayWidth: Int
+        val displayHeight: Int
 
         // 屏幕宽高比
         val specAspectRatio: Float = measuredWidth * 1.0f / measuredHeight
         // 显示宽高比
-        val displayAspectRatio: Float = when (mCurrentAspectRatio) {
-            AR_16_9_FIT_PARENT -> {
-                16.0f / 9.0f
-            }
-            AR_4_3_FIT_PARENT -> {
-                4.0f / 3.0f
-            }
-            else -> {
-                videoWidth * 1.0f / videoHeight
-            }
-        }
+        val displayAspectRatio: Float = videoWidth * 1.0f / videoHeight
+
         val shouldBeWider = displayAspectRatio > specAspectRatio
 
-        when (mCurrentAspectRatio) {
-            AR_16_9_FIT_PARENT, AR_4_3_FIT_PARENT -> {
-                if (shouldBeWider) {
-                    displayWidth = measuredWidth
-                    displayHeight = (displayWidth / displayAspectRatio).toInt()
-                } else {
-                    displayHeight = measuredHeight
-                    displayWidth = (displayHeight * displayAspectRatio).toInt()
-                }
-            }
+        if (shouldBeWider) {
+            displayWidth = measuredWidth
+            displayHeight = (displayWidth / displayAspectRatio).toInt()
+        } else {
+            displayHeight = measuredHeight
+            displayWidth = (displayHeight * displayAspectRatio).toInt()
         }
-        Log.d("youzi", "$displayWidth : $displayHeight")
-        mSurfaceView?.let {
+
+        mSurfaceView.let {
             val layoutParams = it.layoutParams
             layoutParams.width = displayWidth
             layoutParams.height = displayHeight
             it.layoutParams = layoutParams
         }
-        mSurfaceView?.holder?.setFixedSize(displayWidth, displayHeight)
+        mSurfaceView.holder?.setFixedSize(displayWidth, displayHeight)
     }
 
 
