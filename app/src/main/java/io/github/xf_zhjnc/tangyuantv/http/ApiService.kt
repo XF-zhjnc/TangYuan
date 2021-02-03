@@ -1,4 +1,4 @@
-package io.github.xf_zhjnc.tangyuantv.data
+package io.github.xf_zhjnc.tangyuantv.http
 
 import okhttp3.ResponseBody
 import retrofit2.Call
