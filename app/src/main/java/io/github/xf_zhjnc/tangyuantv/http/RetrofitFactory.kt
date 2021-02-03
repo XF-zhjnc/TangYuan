@@ -27,6 +27,8 @@ object RetrofitFactory {
             ) //20秒链接超时
             .writeTimeout(20 * 1000.toLong(), TimeUnit.MILLISECONDS) //写入超时20秒
             .addInterceptor(InterceptorUtil.LogInterceptor()!!) //添加日志拦截器
+            .addInterceptor(InterceptorUtil.HeaderInterceptor())
+            .addInterceptor(InterceptorUtil.CommonQueryInterceptor())
             .readTimeout(20 * 1000.toLong(), TimeUnit.MILLISECONDS)
 
 

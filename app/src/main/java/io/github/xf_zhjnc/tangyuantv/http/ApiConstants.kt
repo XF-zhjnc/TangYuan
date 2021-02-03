@@ -9,7 +9,7 @@ package io.github.xf_zhjnc.tangyuantv.http
 class ApiConstants {
 
     companion object {
-        const val BASE_URL = "https://www.baidu.com/"
+        const val BASE_URL = "http://m.cctv4g.com/"
     }
 
 }

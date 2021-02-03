@@ -1,14 +1,18 @@
-package io.github.xf_zhjnc.tangyuantv
+package io.github.xf_zhjnc.tangyuantv.home
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import io.github.xf_zhjnc.tangyuantv.ChannelInfo
+import io.github.xf_zhjnc.tangyuantv.VideoPlayerActivity
 import io.github.xf_zhjnc.tangyuantv.adapter.MainChannelAdapter
 import io.github.xf_zhjnc.tangyuantv.databinding.ActivityMainBinding
 
-class MainActivity : AppCompatActivity() {
+class HomeActivity : AppCompatActivity() {
 
     private lateinit var mBinding: ActivityMainBinding
+    private lateinit var mViewModel: HomeViewModel
     private var mChannelLists = ArrayList<ChannelInfo>()
     private lateinit var mMainChannelAdapter: MainChannelAdapter
 
@@ -17,9 +21,12 @@ class MainActivity : AppCompatActivity() {
         mBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(mBinding.root)
 
+        mViewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
+
         initData()
         initRecyclerView()
 
+        mViewModel.requestList()
     }
 
     private fun initData() {
@@ -41,7 +48,7 @@ class MainActivity : AppCompatActivity() {
 
         mMainChannelAdapter.setOnItemClickListener(object : MainChannelAdapter.OnItemClickListener {
             override fun onItemClick(position: Int) {
-                VideoPlayerActivity.start(this@MainActivity, mChannelLists[position].videoUrl)
+                VideoPlayerActivity.start(this@HomeActivity, mChannelLists[position].videoUrl)
             }
         })
 
