@@ -1,5 +1,6 @@
 package io.github.xf_zhjnc.tangyuantv.http
 
+import io.github.xf_zhjnc.tangyuantv.http.vo.AllLiveResult
 import io.reactivex.Observable
 import okhttp3.ResponseBody
 import retrofit2.http.*
@@ -10,4 +11,7 @@ interface ApiService {
 
     @POST("cntv/resource/cltv2/loading.jsp")
     fun requestLoading(): Observable<ResponseBody>
+
+    @POST("cntv/resource/cltv2/allLive.jsp?nodeId=1438")
+    fun getAllLive(): Observable<AllLiveResult>
 }

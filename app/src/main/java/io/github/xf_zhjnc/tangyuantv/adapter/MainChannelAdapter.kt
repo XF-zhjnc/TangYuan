@@ -4,24 +4,26 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import androidx.recyclerview.widget.RecyclerView
-import io.github.xf_zhjnc.tangyuantv.ChannelInfo
+import com.bumptech.glide.Glide
 import io.github.xf_zhjnc.tangyuantv.R
+import io.github.xf_zhjnc.tangyuantv.bean.LiveChannel
+import io.github.xf_zhjnc.tangyuantv.databinding.ItemMainChannelListBinding
 
 /**
  * NAME: 柚子啊
  * DATE: 2021/1/8
  * DESC:
  */
-class MainChannelAdapter(private val context: Context,
-                         private val mChannelList: ArrayList<ChannelInfo>) :
+class MainChannelAdapter(private val context: Context) :
         RecyclerView.Adapter<MainChannelAdapter.ViewHolder>() {
 
-    private lateinit var mListener: OnItemClickListener
+    private var mListener: OnItemClickListener? = null
+
+    private val mChannelList: ArrayList<LiveChannel> = ArrayList()
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        var button: Button = itemView.findViewById(R.id.btnChannel)
+        val binding: ItemMainChannelListBinding = ItemMainChannelListBinding.bind(itemView)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = ViewHolder(
@@ -32,8 +34,16 @@ class MainChannelAdapter(private val context: Context,
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val channelInfo = mChannelList[position]
-        holder.button.text = channelInfo.channelTitle
-        holder.button.setOnClickListener { mListener.onItemClick(position) }
+        holder.binding.btnChannel.text = channelInfo.name
+        holder.binding.btnChannel.setOnClickListener { mListener?.onItemClick(position) }
+        holder.binding.tvLiveDesc.text = channelInfo.shortDesc
+        Glide.with(context).load(channelInfo.imageURL).into(holder.binding.ivChannelPreview)
+    }
+
+    fun setNewData(newData: List<LiveChannel>) {
+        mChannelList.clear()
+        mChannelList.addAll(newData)
+        notifyDataSetChanged()
     }
 
     fun setOnItemClickListener(listener: OnItemClickListener) {

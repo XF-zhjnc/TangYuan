@@ -2,6 +2,7 @@ package io.github.xf_zhjnc.tangyuantv.home
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.xf_zhjnc.tangyuantv.ChannelInfo
@@ -27,6 +28,10 @@ class HomeActivity : AppCompatActivity() {
         initRecyclerView()
 
         mViewModel.requestList()
+
+        mViewModel.channelListResult.observe(this, Observer {
+            mMainChannelAdapter.setNewData(it)
+        })
     }
 
     private fun initData() {
@@ -41,14 +46,14 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun initRecyclerView() {
-        mMainChannelAdapter = MainChannelAdapter(this, mChannelLists)
+        mMainChannelAdapter = MainChannelAdapter(this)
         val layoutManager = LinearLayoutManager(this)
         mBinding.rcyChannelList.layoutManager = layoutManager
         mBinding.rcyChannelList.adapter = mMainChannelAdapter
 
         mMainChannelAdapter.setOnItemClickListener(object : MainChannelAdapter.OnItemClickListener {
             override fun onItemClick(position: Int) {
-                VideoPlayerActivity.start(this@HomeActivity, mChannelLists[position].videoUrl)
+                VideoPlayerActivity.start(this@HomeActivity, mChannelLists[0].videoUrl)
             }
         })
 
