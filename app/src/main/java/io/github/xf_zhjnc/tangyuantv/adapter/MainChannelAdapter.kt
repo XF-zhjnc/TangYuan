@@ -35,7 +35,9 @@ class MainChannelAdapter(private val context: Context) :
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val channelInfo = mChannelList[position]
         holder.binding.btnChannel.text = channelInfo.name
-        holder.binding.btnChannel.setOnClickListener { mListener?.onItemClick(position) }
+        holder.binding.btnChannel.setOnClickListener {
+            mListener?.onItemClick(position, channelInfo.objectId)
+        }
         holder.binding.tvLiveDesc.text = channelInfo.shortDesc
         Glide.with(context).load(channelInfo.imageURL).into(holder.binding.ivChannelPreview)
     }
@@ -51,6 +53,6 @@ class MainChannelAdapter(private val context: Context) :
     }
 
     interface OnItemClickListener {
-        fun onItemClick(position: Int)
+        fun onItemClick(position: Int, channelId: String)
     }
 }

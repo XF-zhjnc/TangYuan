@@ -14,4 +14,10 @@ interface ApiService {
 
     @POST("cntv/resource/cltv2/allLive.jsp?nodeId=1438")
     fun getAllLive(): Observable<AllLiveResult>
+
+    @POST("cntv/resource/cltv2/liveDetailPage.jsp")
+    fun getLiveDetail(@QueryMap query: Map<String, String>): Observable<ResponseBody>
+
+    @POST("cntv/clt/programAuthAndGetPlayUrl.msp")
+    fun getPlayUrl() : Observable<ResponseBody>
 }

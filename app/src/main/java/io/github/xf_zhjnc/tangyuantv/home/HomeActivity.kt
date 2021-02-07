@@ -9,6 +9,7 @@ import io.github.xf_zhjnc.tangyuantv.ChannelInfo
 import io.github.xf_zhjnc.tangyuantv.VideoPlayerActivity
 import io.github.xf_zhjnc.tangyuantv.adapter.MainChannelAdapter
 import io.github.xf_zhjnc.tangyuantv.databinding.ActivityMainBinding
+import io.github.xf_zhjnc.tangyuantv.detail.LiveDetailActivity
 
 class HomeActivity : AppCompatActivity() {
 
@@ -52,8 +53,9 @@ class HomeActivity : AppCompatActivity() {
         mBinding.rcyChannelList.adapter = mMainChannelAdapter
 
         mMainChannelAdapter.setOnItemClickListener(object : MainChannelAdapter.OnItemClickListener {
-            override fun onItemClick(position: Int) {
-                VideoPlayerActivity.start(this@HomeActivity, mChannelLists[0].videoUrl)
+            override fun onItemClick(position: Int, channelId: String) {
+                LiveDetailActivity.start(this@HomeActivity, channelId)
+                //VideoPlayerActivity.start(this@HomeActivity, mChannelLists[0].videoUrl)
             }
         })
 
