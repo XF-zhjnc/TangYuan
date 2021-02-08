@@ -36,7 +36,7 @@ class MainChannelAdapter(private val context: Context) :
         val channelInfo = mChannelList[position]
         holder.binding.btnChannel.text = channelInfo.name
         holder.binding.btnChannel.setOnClickListener {
-            mListener?.onItemClick(position, channelInfo.objectId)
+            mListener?.onItemClick(position, channelInfo)
         }
         holder.binding.tvLiveDesc.text = channelInfo.shortDesc
         Glide.with(context).load(channelInfo.imageURL).into(holder.binding.ivChannelPreview)
@@ -53,6 +53,6 @@ class MainChannelAdapter(private val context: Context) :
     }
 
     interface OnItemClickListener {
-        fun onItemClick(position: Int, channelId: String)
+        fun onItemClick(position: Int, channel: LiveChannel)
     }
 }

@@ -1,6 +1,7 @@
 package io.github.xf_zhjnc.tangyuantv.http
 
 import io.github.xf_zhjnc.tangyuantv.http.vo.AllLiveResult
+import io.github.xf_zhjnc.tangyuantv.http.vo.LiveChannelDetailResult
 import io.reactivex.Observable
 import okhttp3.ResponseBody
 import retrofit2.http.*
@@ -12,11 +13,11 @@ interface ApiService {
     @POST("cntv/resource/cltv2/loading.jsp")
     fun requestLoading(): Observable<ResponseBody>
 
-    @POST("cntv/resource/cltv2/allLive.jsp?nodeId=1438")
+    @POST("cntv/resource/cltv2/allLive.jsp?nodeId=2810")
     fun getAllLive(): Observable<AllLiveResult>
 
     @POST("cntv/resource/cltv2/liveDetailPage.jsp")
-    fun getLiveDetail(@QueryMap query: Map<String, String>): Observable<ResponseBody>
+    fun getLiveDetail(@QueryMap query: Map<String, String>): Observable<LiveChannelDetailResult>
 
     @POST("cntv/clt/programAuthAndGetPlayUrl.msp")
     fun getPlayUrl() : Observable<ResponseBody>
